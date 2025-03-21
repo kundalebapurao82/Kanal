@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medicine Chatbot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom Scrollbar */
+        #chatbox::-webkit-scrollbar {
+            width: 6px;
+        }
+        #chatbox::-webkit-scrollbar-thumb {
+            background: #3b82f6;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-r from-blue-100 to-blue-200 flex items-center justify-center min-h-screen">
+
+    <div class="bg-white shadow-2xl rounded-2xl p-6 w-full max-w-lg">
+        <h2 class="text-2xl font-bold text-center text-blue-700 flex items-center justify-center">
+            Medicine Chatbot <span class="ml-2">💊</span>
+        </h2>
+        
+        <div id="chatbox" class="border rounded-lg p-3 h-80 overflow-y-scroll mt-4 bg-gray-50 shadow-inner"></div>
+
+        <div class="mt-4 flex">
+            <input type="text" id="userInput" class="w-full border border-gray-300 rounded-l-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-400" 
+                placeholder="Enter medicine name...">
+            <button onclick="sendMessage()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 rounded-r-lg transition-all duration-300">Ask</button>
+        </div>
+    </div>
+
+    <script>
+        function sendMessage() {
+            let userText = document.getElementById("userInput").value.trim();
+            if (userText === "") return;
+
+            let chatbox = document.getElementById("chatbox");
+            chatbox.innerHTML += `<div class="text-right"><p class="inline-block bg-blue-600 text-white px-4 py-2 rounded-lg shadow-md">You: ${userText}</p></div>`;
+
+            fetch(`http://127.0.0.1:5000/medicine?name=${encodeURIComponent(userText)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        chatbox.innerHTML += `<div class="text-left"><p class="inline-block bg-red-500 text-white px-4 py-2 rounded-lg shadow-md">⚠️ Medicine not found.</p></div>`;
+                    } else {
+                        chatbox.innerHTML += `
+                            <div class="text-left bg-white border border-gray-200 rounded-lg p-3 shadow-md mt-2">
+                                <p><b class="text-blue-700">Medicine:</b> ${data["Medicine Name"]}</p>
+                                <p><b class="text-blue-700">Manufacturer:</b> ${data["Manufacturer"]}</p>
+                                <p><b class="text-blue-700">Composition:</b> ${data["Composition"]}</p>
+                                <p><b class="text-blue-700">Uses:</b> ${data["Uses"]}</p>
+                                <p><b class="text-blue-700">Side Effects:</b> ${data["Side_effects"]}</p>
+                                <p><b class="text-blue-700">Storage:</b> ${data["Storage Condition"]}, ${data["Storage Temperature (°C)"]}°C, ${data["Storage Humidity (%)"]}% Humidity</p>
+                                <p><b class="text-blue-700">Batch No.:</b> ${data["batches"]}</p>
+                            </div>
+                        `;
+                    }
+                    chatbox.scrollTop = chatbox.scrollHeight;
+                })
+                .catch(error => console.error("Error:", error));
+
+            document.getElementById("userInput").value = "";
+        }
+    </script>
+
+</body>
+</html>
